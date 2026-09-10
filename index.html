@@ -145,11 +145,6 @@
     return (mo<10?'0':'')+mo+'/'+(da<10?'0':'')+da+' '+
            (d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
   }
-  function fmtRemain(sec){
-    if(sec<0) sec=0;
-    var h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60);
-    return h+'小时 '+(m<10?'0':'')+m+'分';
-  }
   function mmss(sec){
     sec=Math.max(0,sec|0);
     var h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
@@ -183,7 +178,7 @@
 
     var next = POOL[(st.idx+1)%3];
     $('nname').textContent = next.name;
-    $('ntime').innerHTML = '于 <b>' + fmtDateTime(st.blockEnd) + '</b> 进入（' + fmtRemain(st.remainingSec) + '）';
+    $('ntime').innerHTML = '于 <b>' + fmtDateTime(st.blockEnd) + '</b> 进入';
   }
 
   function renderSchedule(){
