@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>APEX 排位地图轮换 · 赛季 30</title>
 <style>
   :root{
@@ -17,6 +17,7 @@
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
     color:var(--text);
+    -webkit-text-size-adjust:100%;
     background:
       radial-gradient(1200px 600px at 20% -10%, rgba(255,138,77,.10), transparent 60%),
       radial-gradient(900px 500px at 90% 10%, rgba(94,210,255,.08), transparent 60%),
@@ -55,7 +56,8 @@
   .sched{margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
   .sched .head{padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px}
   .sched .head h3{font-size:13px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;font-weight:700}
-  .sched .list{list-style:none;max-height:440px;overflow-y:auto;overscroll-behavior:contain;
+  .sched .list{list-style:none;max-height:min(440px,52vh);overflow-y:auto;overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
     scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.20) transparent}
   .sched .list::-webkit-scrollbar{width:8px}
   .sched .list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.20);border-radius:4px}
@@ -65,10 +67,43 @@
   .pill{flex:none;padding:4px 10px;border-radius:14px;font-size:11.5px;font-weight:700}
   .pill.p-now{background:var(--accent);color:#0b0e17}
   .pill.p-next{background:rgba(255,255,255,.10);color:var(--muted)}
-  .smap{flex:1;font-weight:700;font-size:15px}
+  .smap{flex:1;min-width:0;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .stime{color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
 
-  @media(max-width:560px){.hero .mname{font-size:34px}}
+  /* 手机：整屏 flex，主卡片缩小，排期框撑满剩余空间（整页不滚动，只在框内滚动） */
+  @media(max-width:560px){
+    body{
+      min-height:0; height:100vh; height:100dvh; overflow:hidden;
+      display:flex; flex-direction:column; padding:14px 12px;
+    }
+    .wrap{width:100%; flex:1; min-height:0; display:flex; flex-direction:column}
+    .top{flex:none; margin-bottom:12px; gap:8px}
+    .brand h1{font-size:19px}
+    .badge{font-size:11px; padding:5px 10px}
+
+    .hero{flex:none; padding:18px; border-radius:16px}
+    .hero .tag{font-size:11px; margin-bottom:7px}
+    .hero .mname{font-size:30px}
+    .hero .meng{font-size:13.5px; margin-top:4px}
+    .count{margin-top:14px; gap:10px}
+    .count .big{font-size:26px}
+    .count .lbl{font-size:12px}
+    .bar{margin-top:11px}
+    .barrow{font-size:11px; margin-top:6px}
+    .next{margin-top:14px; padding-top:12px}
+    .next .nlbl{margin-bottom:7px}
+    .next .nname{font-size:17px}
+    .next .ntime{font-size:12.5px}
+
+    .sched{flex:1; min-height:0; display:flex; flex-direction:column; margin-top:12px; border-radius:14px}
+    .sched .head{flex:none; padding:11px 15px}
+    .sched .head h3{font-size:12px}
+    .sched .list{flex:1; min-height:0; max-height:none; overflow-y:auto}
+    .sched li{padding:10px 15px; gap:10px}
+    .pill{font-size:11px; padding:3px 9px}
+    .smap{font-size:14px}
+    .stime{font-size:11.5px}
+  }
 </style>
 </head>
 <body>
