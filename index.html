@@ -53,14 +53,22 @@
   .next .ntime b{color:var(--text);font-weight:600}
 
   .sched{margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
-  .sched .head{padding:18px;display:flex;justify-content:space-between;align-items:center}
+  .sched .head{padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
   .sched .head h3{font-size:13px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;font-weight:700}
-  .sched ul{list-style:none}
-  .sched li{display:flex;align-items:center;gap:14px;padding:13px 18px;border-top:1px solid var(--border)}
-  .sched li.cur{background:linear-gradient(90deg, rgba(255,138,77,.10), transparent)}
+  .sched .splitinfo{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.4}
+  .sched .splitinfo b{color:var(--text);font-weight:600}
+  .sched .list{list-style:none;max-height:440px;overflow-y:auto;overscroll-behavior:contain;
+    scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.20) transparent}
+  .sched .list::-webkit-scrollbar{width:8px}
+  .sched .list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.20);border-radius:4px}
+  .sched .list::-webkit-scrollbar-track{background:transparent}
+  .sched li{display:flex;align-items:center;gap:14px;padding:11px 18px;border-top:1px solid var(--border)}
+  .sched li.cur{background:rgba(255,255,255,.05);box-shadow:inset 3px 0 0 var(--accent)}
+  .sched li.past{opacity:.4}
   .pill{flex:none;padding:4px 10px;border-radius:14px;font-size:11.5px;font-weight:700}
-  .now .pill{background:var(--accent);color:#0b0e17}
-  .soon .pill{background:rgba(255,255,255,.10);color:var(--muted)}
+  .pill.p-now{background:var(--accent);color:#0b0e17}
+  .pill.p-next{background:rgba(255,255,255,.10);color:var(--muted)}
+  .pill.p-past{background:rgba(255,255,255,.05);color:var(--muted)}
   .smap{flex:1;font-weight:700;font-size:15px}
   .stime{color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
 
@@ -100,10 +108,13 @@
 
   <div class="sched">
     <div class="head">
-      <h3>近期轮换排期</h3>
+      <div>
+        <h3>本赛段全部排期</h3>
+        <div class="splitinfo" id="splitinfo">—</div>
+      </div>
       <span id="tznote" style="font-size:12px;color:var(--muted)">—</span>
     </div>
-    <ul id="sched"></ul>
+    <ul id="sched" class="list"></ul>
   </div>
 </div>
 
@@ -118,6 +129,10 @@
   var ANCHOR_MS = Date.parse('2026-09-16T11:00:00+00:00'); // 奥林匹斯起点(北京 9/16 19:00 · Split 2 实测校准)
   var BLOCK_MS  = DUR_MIN*60*1000;
   var CYCLE_MS  = BLOCK_MS*3;
+
+  // 赛段：9/16 01:00 起，6 周
+  var SPLIT_START_MS = Date.parse('2026-09-16T01:00:00+08:00');
+  var SPLIT_END_MS   = SPLIT_START_MS + 6*7*24*60*60*1000;
 
   function state(nowMs){
     var elapsed = nowMs - ANCHOR_MS;
@@ -135,15 +150,18 @@
     };
   }
 
+  function mapIdxAt(t){
+    return (((Math.round((t - ANCHOR_MS)/BLOCK_MS)) % 3) + 3) % 3;
+  }
+
   var $ = function(id){ return document.getElementById(id); };
+  function pad(n){ return (n<10?'0':'')+n; }
   function fmtTime(ms){
     return new Date(ms).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   }
   function fmtDateTime(ms){
     var d = new Date(ms);
-    var mo = d.getMonth()+1, da = d.getDate();
-    return (mo<10?'0':'')+mo+'/'+(da<10?'0':'')+da+' '+
-           (d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+    return pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
   }
   function mmss(sec){
     sec=Math.max(0,sec|0);
@@ -151,7 +169,6 @@
     if(h>0) return h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
     return m+':'+(s<10?'0':'')+s;
   }
-  function pad(n){ return (n<10?'0':'')+n; }
 
   // 动态本地时间，每秒刷新
   function updateTz(){
@@ -181,22 +198,45 @@
     $('ntime').innerHTML = '于 <b>' + fmtDateTime(st.blockEnd) + '</b> 进入';
   }
 
+  // 一次性渲染整个赛段的全部排期
   function renderSchedule(){
-    var st = state(Date.now());
-    var start = st.blockStart;
+    var list = $('sched');
+    var prevTop = list.scrollTop;
+    var now = Date.now();
     var html = '';
-    for(var i=0;i<8;i++){
-      var bs = start + i*BLOCK_MS;
-      var be = bs + BLOCK_MS;
-      var map = POOL[(st.idx + i) % 3];
-      var isCur = (i===0);
-      html += '<li class="'+(isCur?'cur':'')+'">'+
-        '<span class="pill '+(isCur?'now':'soon')+'">'+(isCur?'现在':'排期')+'</span>'+
-        '<span class="smap">'+map.name+'</span>'+
-        '<span class="stime">'+fmtDateTime(bs)+' — '+fmtTime(be)+'</span>'+
+    for(var t = SPLIT_START_MS; t < SPLIT_END_MS; t += BLOCK_MS){
+      var m = POOL[mapIdxAt(t)];
+      var be = t + BLOCK_MS;
+      var cls, pc, pt;
+      if(t <= now && now < be){ cls='cur';  pc='p-now';  pt='现在'; }
+      else if(be <= now){       cls='past'; pc='p-past'; pt='已过'; }
+      else {                    cls='';     pc='p-next'; pt='排期'; }
+      html += '<li class="'+cls+'">'+
+        '<span class="pill '+pc+'">'+pt+'</span>'+
+        '<span class="smap">'+m.name+'</span>'+
+        '<span class="stime">'+fmtDateTime(t)+' — '+fmtTime(be)+'</span>'+
       '</li>';
     }
-    $('sched').innerHTML = html;
+    list.innerHTML = html;
+    list.scrollTop = prevTop;
+
+    var n = Math.round((SPLIT_END_MS - SPLIT_START_MS)/BLOCK_MS);
+    $('splitinfo').innerHTML = '本赛段 <b>' + fmtDateTime(SPLIT_START_MS) + '</b> – <b>' + fmtDateTime(SPLIT_END_MS)
+      + '</b>（共 6 周 · ' + n + ' 档 · 每档 4h30m）';
+  }
+
+  function scrollToCur(){
+    var list = $('sched');
+    var el = list.querySelector('li.cur');
+    if(!el) return;
+    var lr = list.getBoundingClientRect(), er = el.getBoundingClientRect();
+    list.scrollTop += (er.top - lr.top) - (list.clientHeight - el.offsetHeight)/2;
+  }
+
+  var lastBlock = null;
+  function refreshSchedule(){
+    var st = state(Date.now());
+    if(st.blockStart !== lastBlock){ lastBlock = st.blockStart; renderSchedule(); }
   }
 
   function tick(){
@@ -205,11 +245,16 @@
     var st = state(Date.now());
     $('countdown').textContent = mmss(st.remainingSec);
     $('fill').style.width = (st.progress*100).toFixed(2)+'%';
+    refreshSchedule();
   }
-  tick();
-  setInterval(tick, 1000);
-  setInterval(renderSchedule, 30000);
+
+  // 初始化
+  renderCards();
+  updateTz();
   renderSchedule();
+  lastBlock = state(Date.now()).blockStart;
+  scrollToCur();
+  setInterval(tick, 1000);
 })();
 </script>
 </body>
