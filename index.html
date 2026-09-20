@@ -262,10 +262,8 @@
     refreshSchedule();
   }
 
-  // 初始化
-  renderCards();
-  updateTz();
-  renderSchedule();
+  // 初始化：先同步渲染一帧（含倒计时与进度条，首帧即出），再启动每秒刷新
+  tick();
   lastBlock = state(Date.now()).blockStart;
   setInterval(tick, 1000);
 })();
