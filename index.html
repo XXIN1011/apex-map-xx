@@ -6,18 +6,19 @@
 <title>APEX 排位地图轮换 · 赛季 30</title>
 <meta name="theme-color" id="meta-theme" content="#0b0e17" />
 <script>
-/* 主题引导：在首帧之前定好浅色/深色，避免先闪一下再跳变。
-   手动选过就以 localStorage 为准，否则跟随系统。 */
+/* 主题引导：在首帧之前定好主题，避免先闪一下再跳变。
+   三档：auto(跟随系统) / light / dark，本地记过就用记下的，否则 auto。 */
 (function(){
-  var t = null;
-  try { t = localStorage.getItem('apex-theme'); } catch(e){}
-  if (t !== 'light' && t !== 'dark'){
-    try { t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'; }
-    catch(e){ t = 'dark'; }
-  }
-  document.documentElement.setAttribute('data-theme', t);
-  var m = document.getElementById('meta-theme');
-  if (m) m.setAttribute('content', t === 'dark' ? '#0b0e17' : '#f7f8fc');
+  var m = 'auto';
+  try { var v = localStorage.getItem('apex-theme'); if (v === 'light' || v === 'dark' || v === 'auto') m = v; } catch(e){}
+  var dark = true;
+  try { dark = !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches); } catch(e){}
+  var t = (m === 'auto') ? (dark ? 'dark' : 'light') : m;
+  var r = document.documentElement;
+  r.setAttribute('data-theme', t);
+  r.setAttribute('data-theme-mode', m);
+  var meta = document.getElementById('meta-theme');
+  if (meta) meta.setAttribute('content', t === 'dark' ? '#0b0e17' : '#f7f8fc');
 })();
 </script>
 <style>
@@ -69,7 +70,8 @@
   }
 
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
+  /* 不给 body 定高：让它的盒子跟着内容长高，背景才铺满整篇（否则渐变只到 100vh，
+     短屏/平板上排期框会有一截落在背景之外）。手机布局在下面的媒体查询里自带 height。 */
   html{background:var(--bg1)}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
@@ -99,8 +101,9 @@
   .themebtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .ic{display:none;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round}
-  :root[data-theme="dark"] .ic-sun{display:block}
-  :root[data-theme="light"] .ic-moon{display:block}
+  :root[data-theme-mode="auto"] .ic-auto{display:block}
+  :root[data-theme-mode="light"] .ic-sun{display:block}
+  :root[data-theme-mode="dark"] .ic-moon{display:block}
 
   .hero{position:relative;border-radius:20px;padding:28px;overflow:hidden;
     background:var(--card);border:1px solid var(--border);box-shadow:var(--card-shadow)}
@@ -185,6 +188,7 @@
       <button class="themebtn" id="themebtn" type="button" aria-label="切换浅色 / 深色主题" title="切换浅色 / 深色主题">
         <svg class="ic ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.4v2.3M12 19.3v2.3M2.4 12h2.3M19.3 12h2.3M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
         <svg class="ic ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 14.6A8.7 8.7 0 1 1 9.4 3.4a6.9 6.9 0 0 0 11.2 11.2z"/></svg>
+        <svg class="ic ic-auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2z" fill="currentColor" stroke="none"/></svg>
       </button>
     </div>
     <div class="badge">赛季 30 · 每张 4 小时 30 分 · 三图循环</div>
@@ -237,8 +241,10 @@
   var SPLIT_START_MS = Date.parse('2026-09-16T01:00:00+08:00');
   var SPLIT_END_MS   = SPLIT_START_MS + 6*7*24*60*60*1000;
 
-  var THEME_KEY = 'apex-theme';
-  var META_BG   = { dark:'#0b0e17', light:'#f7f8fc' };
+  var THEME_KEY   = 'apex-theme';
+  var THEME_MODES = ['auto','light','dark'];          // 点一下换下一档：自动 → 浅色 → 深色 → 自动
+  var THEME_LABEL = { auto:'自动（跟随系统）', light:'浅色', dark:'深色' };
+  var META_BG     = { dark:'#0b0e17', light:'#f7f8fc' };
 
   function state(nowMs){
     var elapsed = nowMs - ANCHOR_MS;
@@ -332,29 +338,43 @@
     if(st.blockStart !== lastBlock){ lastBlock = st.blockStart; renderSchedule(); }
   }
 
-  // ---- 主题 ----
-  function theme(){
-    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  // ---- 主题：auto(跟随系统) / light / dark 三档循环 ----
+  function storedMode(){
+    try{
+      var v = localStorage.getItem(THEME_KEY);
+      if(v === 'light' || v === 'dark' || v === 'auto') return v;
+    }catch(e){}
+    return 'auto';
   }
-  function applyTheme(t, save){
-    document.documentElement.setAttribute('data-theme', t);
+  function systemDark(){
+    try{ return !!window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return true; }
+  }
+  function resolveTheme(mode){ return mode === 'auto' ? (systemDark() ? 'dark' : 'light') : mode; }
+  function nextMode(mode){
+    return THEME_MODES[(THEME_MODES.indexOf(mode) + 1) % THEME_MODES.length];
+  }
+  function applyTheme(mode, save){
+    var t = resolveTheme(mode);
+    var r = document.documentElement;
+    r.setAttribute('data-theme', t);        // 实际生效的明暗
+    r.setAttribute('data-theme-mode', mode); // 用户选的档位（决定显示哪个图标）
     var meta = $('meta-theme');
     if(meta) meta.setAttribute('content', META_BG[t]);
     var btn = $('themebtn');
-    if(btn) btn.setAttribute('aria-label', t === 'dark' ? '切换到浅色主题' : '切换到深色主题');
-    if(save){ try{ localStorage.setItem(THEME_KEY, t); }catch(e){} }
+    if(btn){
+      var label = '主题：' + THEME_LABEL[mode] + '（点击切换到' + THEME_LABEL[nextMode(mode)] + '）';
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('title', label);
+    }
+    if(save){ try{ localStorage.setItem(THEME_KEY, mode); }catch(e){} }
   }
   $('themebtn').addEventListener('click', function(){
-    applyTheme(theme() === 'dark' ? 'light' : 'dark', true);
+    applyTheme(nextMode(storedMode()), true);
   });
-  // 没手动选过时跟随系统变化
+  // 停在「自动」时才跟着系统走
   try{
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
-    var onChange = function(e){
-      var saved = null;
-      try{ saved = localStorage.getItem(THEME_KEY); }catch(err){}
-      if(saved !== 'light' && saved !== 'dark') applyTheme(e.matches ? 'dark' : 'light', false);
-    };
+    var onChange = function(){ if(storedMode() === 'auto') applyTheme('auto', false); };
     if(mq.addEventListener) mq.addEventListener('change', onChange);
     else if(mq.addListener) mq.addListener(onChange);
   }catch(e){}
@@ -370,6 +390,7 @@
 
   // 初始化：先同步渲染一帧（含倒计时与进度条，首帧即出），再启动每秒刷新
   tick();
+  applyTheme(storedMode(), false);
   lastBlock = state(Date.now()).blockStart;
   setInterval(tick, 1000);
 })();
