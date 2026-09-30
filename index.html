@@ -237,9 +237,9 @@
   var BLOCK_MS  = DUR_MIN*60*1000;
   var CYCLE_MS  = BLOCK_MS*3;
 
-  // 赛段：9/16 01:00 起，6 周
+  // 赛段：9/16 01:00 起，8 周（在 6 周基础上再排 14 天，到 11/11 01:00 截止）
   var SPLIT_START_MS = Date.parse('2026-09-16T01:00:00+08:00');
-  var SPLIT_END_MS   = SPLIT_START_MS + 6*7*24*60*60*1000;
+  var SPLIT_END_MS   = SPLIT_START_MS + 8*7*24*60*60*1000;
 
   var THEME_KEY   = 'apex-theme';
   var THEME_MODES = ['auto','light','dark'];          // 点一下换下一档：自动 → 浅色 → 深色 → 自动
