@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>APEX 排位地图轮换 · 赛季 30</title>
-<meta name="theme-color" id="meta-theme" content="#0b0e17" />
+<meta name="theme-color" id="meta-theme" content="#0a0d16" />
 <script>
 /* 主题引导：在首帧之前定好主题，避免先闪一下再跳变。
    三档：auto(跟随系统) / light / dark，本地记过就用记下的，否则 auto。 */
@@ -18,83 +18,84 @@
   r.setAttribute('data-theme', t);
   r.setAttribute('data-theme-mode', m);
   var meta = document.getElementById('meta-theme');
-  if (meta) meta.setAttribute('content', t === 'dark' ? '#0b0e17' : '#f7f8fc');
+  if (meta) meta.setAttribute('content', t === 'dark' ? '#0a0d16' : '#eef0f7');
 })();
 </script>
 <style>
+  /* ── 设计令牌 ─────────────────────────────────────────────────────────
+     半径：卡片 / 内部块 / 胶囊；间距 4·8·12·16·24·32；字号 12 起（正文不缩到 12 以下）；
+     两层阴影 e1(排期卡) / e2(主卡)。颜色全走变量，浅深两套。 */
   :root{
     color-scheme:light;
 
-    /* 地图主题色：-l 浅色主题用，-d 深色主题用（JS 按当前地图写入） */
+    --r-card:16px; --r-inner:10px; --r-pill:999px;
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
+    --fs-cap:12px; --fs-sm:12.5px; --fs-md:15px; --fs-lg:20px; --fs-xl:34px; --fs-2xl:46px;
+
+    /* 地图主题色：-l 浅色主题用，-d 深色主题用（JS 按当前地图写入 --accent/--alt，
+       并按 POOL 写入 --map0..2，供排期行的小圆点用同样的地图色） */
     --accent-l:#b23a06; --alt-l:#9a6a08;
     --accent-d:#ff8a4d; --alt-d:#ffd479;
+    --map0-l:#3a4ccf; --map1-l:#0a6f92; --map2-l:#b23a06;
+    --map0-d:#8b9dff; --map1-d:#5fd4ff; --map2-d:#ff8a4d;
 
     /* 中性色（浅色主题） */
-    --bg1:#f7f8fc; --bg2:#e9edf8;
-    --card:#ffffff;
-    --text:#1b2033; --muted:#616884; --heading:#0e1226; --on-accent:#ffffff;
-    --border:rgba(20,26,52,.09);
-    --track:rgba(20,26,52,.08);
-    --curbg:rgba(20,26,52,.04);
-    --chip:rgba(20,26,52,.06);
-    --sb:rgba(20,26,52,.22);
-    --card-shadow:0 18px 44px rgba(23,33,72,.10);
-    --wash:.09;
-    --glowA:rgba(255,150,90,.18); --glowB:rgba(90,170,255,.16);
-    --glow:color-mix(in srgb, var(--accent) 45%, transparent);
+    --bg:#eef0f7; --card:#ffffff;
+    --text:#1b2033; --muted:#5b6480; --heading:#0f1329; --on-accent:#ffffff;
+    --border:rgba(18,24,48,.10); --track:rgba(18,24,48,.09); --chip:rgba(18,24,48,.06);
+    --curbg:color-mix(in srgb, var(--accent) 7%, transparent);
+    --sb:rgba(18,24,48,.20);
+    --e1:0 1px 2px rgba(19,28,64,.05), 0 8px 20px rgba(19,28,64,.05);
+    --e2:0 2px 4px rgba(19,28,64,.05), 0 20px 44px rgba(19,28,64,.10);
     --accent-soft:color-mix(in srgb, var(--accent) 8%, transparent);
-    --accent-line:color-mix(in srgb, var(--accent) 32%, transparent);
+    --accent-line:color-mix(in srgb, var(--accent) 30%, transparent);
+    /* 徽章/日期这类「强调色当文字」的地方再压一档，保证浅底上也有余量 */
+    --accent-ink:color-mix(in srgb, var(--accent) 88%, #000);
 
     /* 当前生效的强调色 */
     --accent:var(--accent-l); --alt:var(--alt-l);
+    --map0:var(--map0-l); --map1:var(--map1-l); --map2:var(--map2-l);
   }
   :root[data-theme="dark"]{
     color-scheme:dark;
 
-    --bg1:#0b0e17; --bg2:#11162a;
-    --card:#161c30;
-    --text:#e8ecf7; --muted:#8a93b8; --heading:#ffffff; --on-accent:#0b0e17;
-    --border:rgba(255,255,255,.07);
-    --track:rgba(255,255,255,.08);
-    --curbg:rgba(255,255,255,.05);
-    --chip:rgba(255,255,255,.10);
+    --bg:#0a0d16; --card:#151a2a;
+    --text:#e9edf8; --muted:#9aa3c7; --heading:#ffffff; --on-accent:#0a0d16;
+    --border:rgba(255,255,255,.08); --track:rgba(255,255,255,.09); --chip:rgba(255,255,255,.10);
+    --curbg:color-mix(in srgb, var(--accent) 13%, transparent);
     --sb:rgba(255,255,255,.20);
-    --card-shadow:0 20px 60px rgba(0,0,0,.35);
-    --wash:.22;
-    --glowA:rgba(255,138,77,.10); --glowB:rgba(94,210,255,.08);
-    --glow:color-mix(in srgb, var(--accent) 85%, transparent);
+    --e1:0 1px 2px rgba(0,0,0,.30), 0 8px 22px rgba(0,0,0,.26);
+    --e2:0 2px 6px rgba(0,0,0,.34), 0 22px 50px rgba(0,0,0,.42);
     --accent-soft:color-mix(in srgb, var(--accent) 14%, transparent);
-    --accent-line:color-mix(in srgb, var(--accent) 35%, transparent);
+    --accent-line:color-mix(in srgb, var(--accent) 34%, transparent);
+    /* 深色底上强调色本身就够亮，直接复用 */
+    --accent-ink:var(--accent);
 
     --accent:var(--accent-d); --alt:var(--alt-d);
+    --map0:var(--map0-d); --map1:var(--map1-d); --map2:var(--map2-d);
   }
 
   *{box-sizing:border-box;margin:0;padding:0}
-  /* 不给 body 定高：让它的盒子跟着内容长高，背景才铺满整篇（否则渐变只到 100vh，
-     短屏/平板上排期框会有一截落在背景之外）。手机布局在下面的媒体查询里自带 height。 */
-  html{background:var(--bg1)}
+  /* 底色改成纯色（原先那两层光晕渐变去掉，地图身份色只出现在卡片/标记上）；
+     不给 body 定高：让它的盒子跟着内容长高，背景才铺满整篇。 */
+  html{background:var(--bg)}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
-    color:var(--text);
+    color:var(--text);background:var(--bg);
     -webkit-text-size-adjust:100%;
-    background:
-      radial-gradient(1200px 600px at 20% -10%, var(--glowA), transparent 60%),
-      radial-gradient(900px 500px at 90% 10%, var(--glowB), transparent 60%),
-      linear-gradient(160deg, var(--bg1), var(--bg2));
-    min-height:100vh; padding:28px 20px 60px;
+    min-height:100vh; padding:var(--sp-6) 20px 60px;
   }
-  /* 主题切换时轻微过渡（.fill 单独写，避免盖掉 width 过渡） */
-  body,.hero,.sched,.badge,.pill,.themebtn,.sched li,.bar{
+  /* 主题切换时轻微过渡（进度条不参与，它每秒都在变） */
+  body,.hero,.sched,.badge,.themebtn,.list li,.bar{
     transition:background-color .25s, color .25s, border-color .25s, box-shadow .25s;
   }
   .wrap{max-width:760px;margin:0 auto}
-  .top{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:20px}
-  .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
-  .brand h1{font-size:22px;font-weight:800;letter-spacing:.5px}
-  .badge{background:var(--accent-soft, rgba(255,138,77,.14));
-    color:var(--accent);border:1px solid var(--accent-line, rgba(255,138,77,.35));
-    padding:6px 12px;border-radius:20px;font-size:12.5px;font-weight:700;letter-spacing:.5px}
-  .themebtn{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+
+  /* ── 页头 ───────────────────────────────────────────────────────── */
+  .top{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-3);margin-bottom:var(--sp-5)}
+  .brand{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);width:100%}
+  .brand h1{font-size:22px;font-weight:800;letter-spacing:.5px;color:var(--heading)}
+  .themebtn{flex:none;width:44px;height:44px;border-radius:var(--r-pill);display:grid;place-items:center;
     background:var(--chip);border:1px solid var(--border);color:var(--muted);cursor:pointer;
     -webkit-tap-highlight-color:transparent;padding:0}
   .themebtn:hover{color:var(--text)}
@@ -104,79 +105,131 @@
   :root[data-theme-mode="auto"] .ic-auto{display:block}
   :root[data-theme-mode="light"] .ic-sun{display:block}
   :root[data-theme-mode="dark"] .ic-moon{display:block}
+  .badge{background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--accent-line);
+    padding:6px 12px;border-radius:var(--r-pill);font-size:var(--fs-sm);font-weight:700;letter-spacing:.4px;
+    white-space:nowrap}
 
-  .hero{position:relative;border-radius:20px;padding:28px;overflow:hidden;
-    background:var(--card);border:1px solid var(--border);box-shadow:var(--card-shadow)}
-  .hero::before{content:"";position:absolute;inset:0;opacity:var(--wash);
-    background:radial-gradient(600px 300px at 90% -20%, var(--accent), transparent 60%);pointer-events:none}
-  .hero .tag{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:10px}
-  .hero .mname{font-size:46px;font-weight:900;line-height:1.05;letter-spacing:-.5px;color:var(--heading)}
-  .hero .meng{color:var(--muted);font-size:16px;margin-top:6px;font-weight:600;letter-spacing:1px}
-  .count{display:flex;align-items:baseline;gap:14px;margin-top:24px;flex-wrap:wrap}
-  .count .big{font-size:34px;font-weight:900;color:var(--heading);font-variant-numeric:tabular-nums}
+  /* ── 主卡：当前地图 ─────────────────────────────────────────────── */
+  .hero{position:relative;overflow:hidden;border-radius:var(--r-card);
+    padding:var(--sp-6) var(--sp-5) var(--sp-5);
+    background:var(--card);border:1px solid var(--border);box-shadow:var(--e2)}
+  /* 地图身份：顶部一条双色发丝边（当前地图的两种主题色） */
+  .hero::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--accent),var(--alt));pointer-events:none}
+  .hero .tag{font-size:var(--fs-cap);letter-spacing:1.6px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;margin-bottom:var(--sp-2)}
+  .hero .mname{font-size:var(--fs-2xl);font-weight:900;line-height:1.05;letter-spacing:-.5px;color:var(--heading)}
+  .hero .meng{color:var(--muted);font-size:16px;margin-top:6px;font-weight:600;letter-spacing:.8px}
+
+  .count{display:flex;align-items:baseline;gap:var(--sp-3);margin-top:var(--sp-5);flex-wrap:wrap}
+  .count .big{font-size:var(--fs-xl);font-weight:900;color:var(--heading);font-variant-numeric:tabular-nums}
   .count .lbl{color:var(--muted);font-size:13px}
-  .bar{height:10px;border-radius:6px;background:var(--track);margin-top:14px;overflow:hidden;position:relative}
-  .bar .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--alt));
-    transition:width .5s linear, box-shadow .25s;box-shadow:0 0 16px var(--glow)}
-  .barrow{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:8px}
 
-  .next{margin-top:22px;padding-top:20px;border-top:1px solid var(--border)}
-  .next .nlbl{font-size:12px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:10px}
-  .next .nrow{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-  .next .nname{font-size:20px;font-weight:800;color:var(--alt)}
+  .bar{height:8px;border-radius:var(--r-pill);background:var(--track);margin-top:var(--sp-3);overflow:hidden}
+  /* 进度每秒只走 0.006%：过渡反而像在动，直接瞬时更新（也就没有动画要迁就 reduced-motion） */
+  .bar .fill{height:100%;width:0;border-radius:var(--r-pill);
+    background:linear-gradient(90deg,var(--accent),var(--alt))}
+  .barrow{display:flex;justify-content:space-between;gap:var(--sp-3);color:var(--muted);
+    font-size:var(--fs-cap);margin-top:var(--sp-2);font-variant-numeric:tabular-nums}
+
+  .next{margin-top:var(--sp-5);padding-top:var(--sp-4);border-top:1px solid var(--border)}
+  .next .nlbl{font-size:var(--fs-cap);letter-spacing:1px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;margin-bottom:6px}
+  .next .nrow{display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap}
+  .next .nname{font-size:var(--fs-lg);font-weight:800;color:var(--alt)}
   .next .ntime{color:var(--muted);font-size:13px}
   .next .ntime b{color:var(--text);font-weight:600}
 
-  .sched{margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
-  .sched .head{padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-  .sched .head h3{font-size:13px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;font-weight:700}
-  .sched .list{list-style:none;max-height:min(440px,52vh);overflow-y:auto;overscroll-behavior:contain;
-    -webkit-overflow-scrolling:touch;
+  /* ── 排期卡 ─────────────────────────────────────────────────────── */
+  .sched{position:relative;margin-top:var(--sp-4);background:var(--card);border:1px solid var(--border);
+    border-radius:var(--r-card);box-shadow:var(--e1);overflow:hidden}
+  .sched .head{padding:var(--sp-4) 18px;display:flex;justify-content:space-between;align-items:center;gap:var(--sp-3)}
+  .sched .head h2{flex:none;font-size:13px;letter-spacing:1px;color:var(--muted);
+    text-transform:uppercase;font-weight:700;white-space:nowrap}
+  .sched .head .tz{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-size:var(--fs-cap);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+  /* 底部渐隐：提示还能往下滚；配合 .list 的 padding-bottom，滚到底时末行不会被盖住 */
+  .sched::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;pointer-events:none;
+    background:linear-gradient(180deg, transparent, var(--card))}
+  .list{list-style:none;max-height:min(460px,58vh);overflow-y:auto;overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;padding-bottom:22px;
     scrollbar-width:thin;scrollbar-color:var(--sb) transparent}
-  .sched .list::-webkit-scrollbar{width:8px}
-  .sched .list::-webkit-scrollbar-thumb{background:var(--sb);border-radius:4px}
-  .sched .list::-webkit-scrollbar-track{background:transparent}
-  .sched li{display:flex;align-items:center;gap:14px;padding:11px 18px;border-top:1px solid var(--border)}
-  .sched li.cur{background:var(--curbg);box-shadow:inset 3px 0 0 var(--accent)}
-  .pill{flex:none;padding:4px 10px;border-radius:14px;font-size:11.5px;font-weight:700}
-  .pill.p-now{background:var(--accent);color:var(--on-accent)}
-  .pill.p-next{background:var(--chip);color:var(--muted)}
-  .smap{flex:1;min-width:0;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .stime{color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .list::-webkit-scrollbar{width:8px}
+  .list::-webkit-scrollbar-thumb{background:var(--sb);border-radius:4px}
+  .list::-webkit-scrollbar-track{background:transparent}
+  /* 日期分组：贴在滚动容器顶部，长列表里始终知道在看哪一天 */
+  .list li.day{position:sticky;top:0;z-index:1;background:var(--card);
+    padding:10px 18px 6px;font-size:var(--fs-cap);font-weight:700;letter-spacing:.6px;color:var(--muted);
+    border-top:1px solid var(--border);font-variant-numeric:tabular-nums}
+  .list li.day:first-child{border-top:0}
+  .list li.day .today{color:var(--accent-ink)}
+  .list li.row{display:flex;align-items:center;gap:10px;padding:0 18px;min-height:46px;
+    border-top:1px solid var(--border)}
+  .dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--mc,var(--muted))}
+  .m0{--mc:var(--map0)} .m1{--mc:var(--map1)} .m2{--mc:var(--map2)}
+  .smap{flex:1 1 auto;min-width:0;font-weight:700;font-size:var(--fs-md);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stime{flex:none;color:var(--muted);font-size:var(--fs-sm);font-variant-numeric:tabular-nums;white-space:nowrap}
+  /* 当前这张：左侧强调条 + 「现在」标签（不只靠颜色区分）；每行重复的「排期」标签一律省掉 */
+  .list li.cur{background:var(--curbg);box-shadow:inset 3px 0 0 var(--accent)}
+  .list li.cur .smap{color:var(--heading)}
+  .pnow{flex:none;padding:3px 9px;border-radius:var(--r-pill);font-size:var(--fs-cap);font-weight:700;
+    letter-spacing:.3px;background:var(--accent);color:var(--on-accent)}
 
-  /* 手机：整屏 flex，主卡片缩小，排期框撑满剩余空间（整页不滚动，只在框内滚动） */
+  /* ── 手机：整屏 flex，主卡缩小，排期框撑满剩余空间（整页不滚动） ──── */
   @media(max-width:560px){
     body{
       min-height:0; height:100vh; height:100dvh; overflow:hidden;
-      display:flex; flex-direction:column; padding:14px 12px;
+      display:flex; flex-direction:column;
+      padding:calc(14px + env(safe-area-inset-top,0px)) 12px calc(14px + env(safe-area-inset-bottom,0px));
     }
     .wrap{width:100%; flex:1; min-height:0; display:flex; flex-direction:column}
-    .top{flex:none; margin-bottom:12px; gap:8px}
+    .top{flex:none; margin-bottom:var(--sp-3); gap:var(--sp-2)}
     .brand h1{font-size:19px}
-    .badge{font-size:11px; padding:5px 10px}
+    .badge{font-size:var(--fs-cap); padding:5px 10px}
 
-    .hero{flex:none; padding:18px; border-radius:16px}
-    .hero .tag{font-size:11px; margin-bottom:7px}
+    .hero{flex:none; padding:var(--sp-4); border-radius:14px}
+    .hero .tag{font-size:var(--fs-cap); margin-bottom:6px}
     .hero .mname{font-size:30px}
     .hero .meng{font-size:13.5px; margin-top:4px}
-    .count{margin-top:14px; gap:10px}
+    .count{margin-top:var(--sp-4); gap:10px}
     .count .big{font-size:26px}
-    .count .lbl{font-size:12px}
+    .count .lbl{font-size:13px}
     .bar{margin-top:11px}
-    .barrow{font-size:11px; margin-top:6px}
-    .next{margin-top:14px; padding-top:12px}
-    .next .nlbl{margin-bottom:7px}
+    .barrow{font-size:var(--fs-cap); margin-top:6px}
+    .next{margin-top:var(--sp-3); padding-top:var(--sp-3)}
+    .next .nlbl{margin-bottom:6px}
     .next .nname{font-size:17px}
-    .next .ntime{font-size:12.5px}
+    .next .ntime{font-size:var(--fs-cap)}
 
-    .sched{flex:1; min-height:0; display:flex; flex-direction:column; margin-top:12px; border-radius:14px}
-    .sched .head{flex:none; padding:11px 15px}
-    .sched .head h3{font-size:12px}
-    .sched .list{flex:1; min-height:0; max-height:none; overflow-y:auto}
-    .sched li{padding:10px 15px; gap:10px}
-    .pill{font-size:11px; padding:3px 9px}
+    .sched{flex:1; min-height:0; display:flex; flex-direction:column;
+      margin-top:var(--sp-3); border-radius:14px}
+    .sched .head{flex:none; padding:11px 14px}
+    .list{flex:1; min-height:0; max-height:none}
+    .list li.day{padding:9px 14px 5px}
+    .list li.row{padding:0 14px; min-height:44px; gap:9px}
     .smap{font-size:14px}
-    .stime{font-size:11.5px}
+    .stime{font-size:12px}
+    .pnow{font-size:var(--fs-cap); padding:3px 8px}
+  }
+  /* 矮屏（320×568 这类）：主卡再压一档，把行数留给排期 */
+  @media(max-width:560px) and (max-height:720px){
+    .hero{padding:var(--sp-3) var(--sp-4)}
+    .hero .tag{display:none}
+    .hero .mname{font-size:24px}
+    .hero .meng{font-size:12.5px}
+    .count{margin-top:10px}
+    .count .big{font-size:22px}
+    .count .lbl{font-size:var(--fs-cap)}
+    .bar{margin-top:9px; height:7px}
+    .next{margin-top:10px; padding-top:10px}
+    .next .nname{font-size:16px}
+    .sched{margin-top:10px}
+    .sched .head{padding:9px 14px}
+  }
+  /* 尊重系统「减少动态效果」：主题切换的过渡也一并去掉 */
+  @media(prefers-reduced-motion:reduce){
+    *{transition:none !important; animation:none !important; scroll-behavior:auto !important}
   }
 </style>
 </head>
@@ -185,7 +238,7 @@
   <div class="top">
     <div class="brand">
       <h1>APEX 排位地图轮换</h1>
-      <button class="themebtn" id="themebtn" type="button" aria-label="切换浅色 / 深色主题" title="切换浅色 / 深色主题">
+      <button class="themebtn" id="themebtn" type="button" aria-label="主题：自动（跟随系统）· 点击切换" title="主题：自动（跟随系统）· 点击切换">
         <svg class="ic ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.4v2.3M12 19.3v2.3M2.4 12h2.3M19.3 12h2.3M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
         <svg class="ic ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 14.6A8.7 8.7 0 1 1 9.4 3.4a6.9 6.9 0 0 0 11.2 11.2z"/></svg>
         <svg class="ic ic-auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2z" fill="currentColor" stroke="none"/></svg>
@@ -194,15 +247,18 @@
     <div class="badge">赛季 30 · 每张 4 小时 30 分 · 三图循环</div>
   </div>
 
-  <div class="hero">
-    <div class="tag">当前排位地图</div>
+  <section class="hero">
+    <h2 class="tag">当前排位地图</h2>
     <div class="mname" id="mname">—</div>
     <div class="meng" id="meng">—</div>
     <div class="count">
       <span class="big" id="countdown">—</span>
       <span class="lbl">后切换下一张</span>
     </div>
-    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="bar" id="bar" role="progressbar" aria-label="当前时段进度"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="—">
+      <div class="fill" id="fill"></div>
+    </div>
     <div class="barrow">
       <span id="stime">—</span>
       <span id="etime">—</span>
@@ -214,23 +270,23 @@
         <span class="ntime" id="ntime">—</span>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="sched">
+  <section class="sched">
     <div class="head">
-      <h3>后续轮换排期</h3>
-      <span id="tznote" style="font-size:12px;color:var(--muted)">—</span>
+      <h2>后续轮换排期</h2>
+      <span class="tz" id="tznote">—</span>
     </div>
     <ul id="sched" class="list"></ul>
-  </div>
+  </section>
 </div>
 
 <script>
 (function(){
   var POOL = [
-    { name:'奥林匹斯', en:'Olympus',      al:'#3a4ccf', bl:'#7038c4', ad:'#8b9dff', bd:'#c2a3ff' },
-    { name:'残月',     en:'Broken Moon',  al:'#0a6f92', bl:'#0a5f7d', ad:'#5fd4ff', bd:'#7ee0ff' },
-    { name:'世界尽头', en:"World's Edge", al:'#b23a06', bl:'#9a6a08', ad:'#ff8a4d', bd:'#ffd479' }
+    { i:0, name:'奥林匹斯', en:'Olympus',      al:'#3a4ccf', bl:'#7038c4', ad:'#8b9dff', bd:'#c2a3ff' },
+    { i:1, name:'残月',     en:'Broken Moon',  al:'#0a6f92', bl:'#0a5f7d', ad:'#5fd4ff', bd:'#7ee0ff' },
+    { i:2, name:'世界尽头', en:"World's Edge", al:'#b23a06', bl:'#9a6a08', ad:'#ff8a4d', bd:'#ffd479' }
   ];
   var DUR_MIN   = 270;
   var ANCHOR_MS = Date.parse('2026-09-16T11:00:00+00:00'); // 奥林匹斯起点(北京 9/16 19:00 · Split 2 实测校准)
@@ -241,10 +297,11 @@
   var SPLIT_START_MS = Date.parse('2026-09-16T01:00:00+08:00');
   var SPLIT_END_MS   = SPLIT_START_MS + 8*7*24*60*60*1000;
 
-  var THEME_KEY   = 'apex-theme';
-  var THEME_MODES = ['auto','light','dark'];          // 点一下换下一档：自动 → 浅色 → 深色 → 自动
-  var THEME_LABEL = { auto:'自动（跟随系统）', light:'浅色', dark:'深色' };
-  var META_BG     = { dark:'#0b0e17', light:'#f7f8fc' };
+  var THEME_KEY    = 'apex-theme';                     // 键名别改，改了所有人的主题记忆就重置
+  var THEME_MODES  = ['auto','light','dark'];          // 点一下换下一档：自动 → 浅色 → 深色 → 自动
+  var THEME_LABEL  = { auto:'自动（跟随系统）', light:'浅色', dark:'深色' };
+  var META_BG      = { dark:'#0a0d16', light:'#eef0f7' };
+  var WEEK         = ['周日','周一','周二','周三','周四','周五','周六'];
 
   function state(nowMs){
     var elapsed = nowMs - ANCHOR_MS;
@@ -275,6 +332,19 @@
     var d = new Date(ms);
     return pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
   }
+  function dayKey(ms){
+    var d = new Date(ms);
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  }
+  // 日期分隔行文案：MM/DD 周X（当天在渲染处另外标「今天」）
+  function fmtDayLabel(ms){
+    var d = new Date(ms);
+    return pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+WEEK[d.getDay()];
+  }
+  // 结束时间跨到第二天时标出来，免得看着像同一天的 04:00
+  function fmtEndText(startMs, endMs){
+    return (dayKey(startMs) === dayKey(endMs) ? '' : '次日 ') + fmtTime(endMs);
+  }
   function mmss(sec){
     sec=Math.max(0,sec|0);
     var h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
@@ -282,7 +352,7 @@
     return m+':'+(s<10?'0':'')+s;
   }
 
-  // 动态本地时间，每秒刷新
+  // 动态本地时间，每秒刷新（年份省掉，窄屏才放得下）
   function updateTz(){
     var d = new Date();
     var tz = '本地';
@@ -291,7 +361,7 @@
       var t = parts.filter(function(p){return p.type==='timeZoneName';})[0];
       if(t) tz = t.value;
     } catch(e){}
-    $('tznote').textContent = '本地时间 ' + d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate())
+    $('tznote').textContent = '本地 ' + pad(d.getMonth()+1)+'/'+pad(d.getDate())
       + ' ' + pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()) + ' ' + tz;
   }
 
@@ -303,6 +373,11 @@
     var rs = document.documentElement.style;
     rs.setProperty('--accent-l', m.al); rs.setProperty('--alt-l', m.bl);
     rs.setProperty('--accent-d', m.ad); rs.setProperty('--alt-d', m.bd);
+    // 排期行的小圆点：每张地图自己的颜色
+    for(var i=0;i<POOL.length;i++){
+      rs.setProperty('--map'+i+'-l', POOL[i].al);
+      rs.setProperty('--map'+i+'-d', POOL[i].ad);
+    }
     $('stime').textContent = '开始 ' + fmtDateTime(st.blockStart);
     $('etime').textContent = '结束 ' + fmtDateTime(st.blockEnd);
 
@@ -311,21 +386,29 @@
     $('ntime').innerHTML = '于 <b>' + fmtDateTime(st.blockEnd) + '</b> 进入';
   }
 
-  // 渲染「当前这档 → 赛段结束」的全部排期（已过的不显示）
+  // 渲染「当前这档 → 赛段结束」的全部排期（已过的不显示），按天分组
   function renderSchedule(){
     var list = $('sched');
     var prevTop = list.scrollTop;
     var now = Date.now();
     var start = Math.max(SPLIT_START_MS, state(now).blockStart);
-    var html = '';
+    var todayKey = dayKey(now);
+    var html = '', lastDay = null;
     for(var t = start; t < SPLIT_END_MS; t += BLOCK_MS){
       var m = POOL[mapIdxAt(t)];
       var be = t + BLOCK_MS;
       var isCur = (t <= now && now < be);
-      html += '<li class="'+(isCur?'cur':'')+'">'+
-        '<span class="pill '+(isCur?'p-now':'p-next')+'">'+(isCur?'现在':'排期')+'</span>'+
+      var dk = dayKey(t);
+      if(dk !== lastDay){
+        lastDay = dk;
+        html += '<li class="day">' + (dk === todayKey ? '<span class="today">今天</span> · ' : '')
+          + fmtDayLabel(t) + '</li>';
+      }
+      html += '<li class="row'+(isCur?' cur':'')+'">'+
+        '<span class="dot m'+m.i+'"></span>'+
         '<span class="smap">'+m.name+'</span>'+
-        '<span class="stime">'+fmtDateTime(t)+' — '+fmtTime(be)+'</span>'+
+        (isCur?'<span class="pnow">现在</span>':'')+
+        '<span class="stime">'+fmtDateTime(t)+' — '+fmtEndText(t, be)+'</span>'+
       '</li>';
     }
     list.innerHTML = html;
@@ -362,7 +445,7 @@
     if(meta) meta.setAttribute('content', META_BG[t]);
     var btn = $('themebtn');
     if(btn){
-      var label = '主题：' + THEME_LABEL[mode] + '（点击切换到' + THEME_LABEL[nextMode(mode)] + '）';
+      var label = '主题：' + THEME_LABEL[mode] + ' · 点击切换（下一档：' + THEME_LABEL[nextMode(mode)] + '）';
       btn.setAttribute('aria-label', label);
       btn.setAttribute('title', label);
     }
@@ -385,6 +468,9 @@
     var st = state(Date.now());
     $('countdown').textContent = mmss(st.remainingSec);
     $('fill').style.width = (st.progress*100).toFixed(2)+'%';
+    var bar = $('bar');
+    bar.setAttribute('aria-valuenow', Math.round(st.progress*100));
+    bar.setAttribute('aria-valuetext', '剩余 ' + mmss(st.remainingSec));
     refreshSchedule();
   }
 
