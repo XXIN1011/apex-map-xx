@@ -330,20 +330,20 @@
   }
   function fmtDateTime(ms){
     var d = new Date(ms);
-    return pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+    return pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
   }
   function dayKey(ms){
     var d = new Date(ms);
     return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   }
-  // 日期分隔行文案：MM/DD 周X（当天在渲染处另外标「今天」）
+  // 日期分隔行文案：MM-DD 周X（当天在渲染处另外标「今天」）
   function fmtDayLabel(ms){
     var d = new Date(ms);
-    return pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+WEEK[d.getDay()];
+    return pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+WEEK[d.getDay()];
   }
-  // 结束时间跨到第二天时标出来，免得看着像同一天的 04:00
+  // 结束时间跨到第二天时直接写完整日期，不再用「次日」这种相对说法
   function fmtEndText(startMs, endMs){
-    return (dayKey(startMs) === dayKey(endMs) ? '' : '次日 ') + fmtTime(endMs);
+    return dayKey(startMs) === dayKey(endMs) ? fmtTime(endMs) : fmtDateTime(endMs);
   }
   function mmss(sec){
     sec=Math.max(0,sec|0);
@@ -361,7 +361,7 @@
       var t = parts.filter(function(p){return p.type==='timeZoneName';})[0];
       if(t) tz = t.value;
     } catch(e){}
-    $('tznote').textContent = '本地 ' + pad(d.getMonth()+1)+'/'+pad(d.getDate())
+    $('tznote').textContent = '本地 ' + pad(d.getMonth()+1)+'-'+pad(d.getDate())
       + ' ' + pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()) + ' ' + tz;
   }
 
