@@ -30,7 +30,7 @@
 
     --r-card:16px; --r-inner:10px; --r-pill:999px;
     --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
-    --fs-cap:12px; --fs-sm:12.5px; --fs-md:15px; --fs-lg:20px; --fs-xl:34px; --fs-2xl:46px;
+    --fs-cap:13px; --fs-sm:13.5px; --fs-md:15px; --fs-lg:20px; --fs-xl:34px; --fs-2xl:46px;
 
     /* 地图主题色：-l 浅色主题用，-d 深色主题用，JS 按当前地图写入。 */
     --accent-l:#b23a06; --alt-l:#9a6a08;
@@ -38,7 +38,7 @@
 
     /* 中性色（浅色主题） */
     --bg:#eef0f7; --card:#ffffff;
-    --text:#1b2033; --muted:#5b6480; --heading:#0f1329; --on-accent:#ffffff;
+    --text:#1b2033; --muted:#505b73; --heading:#0f1329; --on-accent:#ffffff;
     --border:rgba(18,24,48,.10); --track:rgba(18,24,48,.09); --chip:rgba(18,24,48,.06);
     --curbg:color-mix(in srgb, var(--accent) 7%, transparent);
     --sb:rgba(18,24,48,.20);
@@ -56,7 +56,7 @@
     color-scheme:dark;
 
     --bg:#0a0d16; --card:#151a2a;
-    --text:#e9edf8; --muted:#9aa3c7; --heading:#ffffff; --on-accent:#0a0d16;
+    --text:#e9edf8; --muted:#abb4d0; --heading:#ffffff; --on-accent:#0a0d16;
     --border:rgba(255,255,255,.08); --track:rgba(255,255,255,.09); --chip:rgba(255,255,255,.10);
     --curbg:color-mix(in srgb, var(--accent) 13%, transparent);
     --sb:rgba(255,255,255,.20);
@@ -91,9 +91,19 @@
   .top{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-3);margin-bottom:var(--sp-5)}
   .brand{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);width:100%}
   .brand h1{font-size:22px;font-weight:800;letter-spacing:.5px;color:var(--heading)}
-  .themebtn{flex:none;width:44px;height:44px;border-radius:var(--r-pill);display:grid;place-items:center;
+  .theme-control{position:relative;flex:none}
+  .themebtn{flex:none;min-width:44px;height:44px;padding:0 12px;border-radius:var(--r-pill);display:flex;align-items:center;justify-content:center;gap:6px;
     background:var(--chip);border:1px solid var(--border);color:var(--muted);cursor:pointer;
-    -webkit-tap-highlight-color:transparent;padding:0}
+    -webkit-tap-highlight-color:transparent;font:inherit;font-size:12px;font-weight:600}
+  .theme-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:10;width:180px;
+    padding:6px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-inner);box-shadow:var(--e2)}
+  .theme-option{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;
+    padding:10px 12px;border:0;border-radius:6px;background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer;text-align:left}
+  .theme-option:hover{background:var(--chip)}
+  .theme-option[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
+  .theme-option .check{visibility:hidden}
+  .theme-option[aria-pressed="true"] .check{visibility:visible}
+  .theme-option:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
   .themebtn:hover{color:var(--text)}
   .themebtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .ic{display:none;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;
@@ -120,7 +130,7 @@
 
   .count{display:flex;align-items:baseline;gap:var(--sp-3);margin-top:var(--sp-5);flex-wrap:wrap}
   .count .big{font-size:var(--fs-xl);font-weight:900;color:var(--heading);font-variant-numeric:tabular-nums}
-  .count .lbl{color:var(--muted);font-size:13px}
+  .count .lbl{color:var(--muted);font-size:14px}
 
   .bar{height:8px;border-radius:var(--r-pill);background:var(--track);margin-top:var(--sp-3);overflow:hidden}
   /* 进度每秒只走 0.006%：过渡反而像在动，直接瞬时更新（也就没有动画要迁就 reduced-motion） */
@@ -133,15 +143,15 @@
   .next .nlbl{font-size:var(--fs-cap);letter-spacing:1px;color:var(--muted);font-weight:700;
     text-transform:uppercase;margin-bottom:6px}
   .next .nrow{display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap}
-  .next .nname{font-size:var(--fs-lg);font-weight:800;color:var(--alt)}
-  .next .ntime{color:var(--muted);font-size:13px}
+  .next .nname{font-size:var(--fs-lg);font-weight:800;color:var(--accent-ink)}
+  .next .ntime{color:var(--muted);font-size:14px}
   .next .ntime b{color:var(--text);font-weight:600}
 
   /* ── 排期卡 ─────────────────────────────────────────────────────── */
   .sched{position:relative;margin-top:var(--sp-4);background:var(--card);border:1px solid var(--border);
     border-radius:var(--r-card);box-shadow:var(--e1);overflow:hidden}
   .sched .head{padding:var(--sp-4) 18px;display:flex;justify-content:space-between;align-items:center;gap:var(--sp-3)}
-  .sched .head h2{flex:none;font-size:13px;letter-spacing:1px;color:var(--muted);
+  .sched .head h2{flex:none;font-size:14px;letter-spacing:.5px;color:var(--text);
     text-transform:uppercase;font-weight:700;white-space:nowrap}
   .sched .head .tz{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     font-size:var(--fs-cap);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
@@ -168,7 +178,7 @@
   .list li.empty{padding:var(--sp-5) 18px;color:var(--muted);font-size:var(--fs-md);line-height:1.6}
   .smap{flex:1 1 auto;min-width:0;font-weight:700;font-size:var(--fs-md);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .stime{flex:none;color:var(--muted);font-size:var(--fs-sm);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .stime{flex:none;color:var(--muted);font-weight:500;font-size:var(--fs-sm);font-variant-numeric:tabular-nums;white-space:nowrap}
   /* 当前这张：左侧强调条 + 「现在」标签（不只靠颜色区分）；每行重复的「排期」标签一律省掉 */
   .list li.cur{background:var(--curbg);box-shadow:inset 3px 0 0 var(--accent)}
   .list li.cur .smap{color:var(--heading)}
@@ -189,10 +199,10 @@
 
     .hero{flex:none; padding:var(--sp-4); border-radius:14px}
     .hero .tag{font-size:var(--fs-cap); margin-bottom:6px}
-    .hero .mname{font-size:30px}
+    .hero .mname{font-size:32px}
     .hero .meng{font-size:13.5px; margin-top:4px}
     .count{margin-top:var(--sp-4); gap:10px}
-    .count .big{font-size:26px}
+    .count .big{font-size:28px}
     .count .lbl{font-size:13px}
     .bar{margin-top:11px}
     .barrow{font-size:var(--fs-cap); margin-top:6px}
@@ -207,8 +217,8 @@
     .list{flex:1; min-height:0; max-height:none}
     .list li.day{padding:9px 14px 5px}
     .list li.row{padding:0 14px; min-height:44px; gap:9px}
-    .smap{font-size:14px}
-    .stime{font-size:12px}
+    .smap{font-size:15px}
+    .stime{font-size:12.5px}
     .pnow{font-size:var(--fs-cap); padding:3px 8px}
   }
   /* 矮屏（320×568 这类）：主卡再压一档，把行数留给排期 */
@@ -218,7 +228,7 @@
     .hero .mname{font-size:24px}
     .hero .meng{font-size:12.5px}
     .count{margin-top:10px}
-    .count .big{font-size:22px}
+    .count .big{font-size:24px}
     .count .lbl{font-size:var(--fs-cap)}
     .bar{margin-top:9px; height:7px}
     .next{margin-top:10px; padding-top:10px}
@@ -237,11 +247,19 @@
   <div class="top">
     <div class="brand">
       <h1>APEX 排位地图轮换</h1>
-      <button class="themebtn" id="themebtn" type="button" aria-label="主题：自动（跟随系统）· 点击切换" title="主题：自动（跟随系统）· 点击切换">
+      <div class="theme-control" id="theme-control">
+      <button class="themebtn" id="themebtn" type="button" aria-label="主题：跟随系统 · 打开选择" title="主题：跟随系统 · 打开选择" aria-expanded="false" aria-controls="theme-menu">
         <svg class="ic ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.4v2.3M12 19.3v2.3M2.4 12h2.3M19.3 12h2.3M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
         <svg class="ic ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 14.6A8.7 8.7 0 1 1 9.4 3.4a6.9 6.9 0 0 0 11.2 11.2z"/></svg>
         <svg class="ic ic-auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2z" fill="currentColor" stroke="none"/></svg>
+        <span id="theme-label">自动</span>
       </button>
+      <div class="theme-menu" id="theme-menu" role="group" aria-label="主题选择" hidden>
+        <button class="theme-option" id="theme-auto" type="button" aria-pressed="true">跟随系统<span class="check" aria-hidden="true">✓</span></button>
+        <button class="theme-option" id="theme-light" type="button" aria-pressed="false">浅色<span class="check" aria-hidden="true">✓</span></button>
+        <button class="theme-option" id="theme-dark" type="button" aria-pressed="false">深色<span class="check" aria-hidden="true">✓</span></button>
+      </div>
+      </div>
     </div>
     <div class="badge" id="season-badge">正在读取赛段信息…</div>
   </div>
@@ -253,7 +271,7 @@
     <div id="rotation-details">
       <div class="count">
         <span class="big" id="countdown">—</span>
-        <span class="lbl" id="countdown-label">后切换下一张</span>
+        <span class="lbl" id="countdown-label">后切换地图</span>
       </div>
       <div class="bar" id="bar" role="progressbar" aria-label="当前时段进度"
            aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="—">
@@ -264,7 +282,7 @@
         <span id="etime">—</span>
       </div>
       <div class="next">
-        <div class="nlbl">下一张</div>
+        <div class="nlbl">下一张地图</div>
         <div class="nrow">
           <span class="nname" id="nname">—</span>
           <span class="ntime" id="ntime">—</span>
@@ -311,8 +329,8 @@
   var SPLIT_END_MS   = Date.parse(SEASON.endsAt);
 
   var THEME_KEY    = 'apex-theme';                     // 键名别改，改了所有人的主题记忆就重置
-  var THEME_MODES  = ['auto','light','dark'];          // 点一下换下一档：自动 → 浅色 → 深色 → 自动
-  var THEME_LABEL  = { auto:'自动（跟随系统）', light:'浅色', dark:'深色' };
+  var THEME_MODES  = ['auto','light','dark'];
+  var THEME_LABEL  = { auto:'跟随系统', light:'浅色', dark:'深色' };
   var META_BG      = { dark:'#0a0d16', light:'#eef0f7' };
   var WEEK         = ['周日','周一','周二','周三','周四','周五','周六'];
 
@@ -400,9 +418,9 @@
 
     var isLast = st.blockEnd === SPLIT_END_MS;
     var next = POOL[(st.idx+1)%POOL.length];
-    $('countdown-label').textContent = isLast ? '后本赛段结束' : '后切换下一张';
+    $('countdown-label').textContent = isLast ? '后本赛段结束' : '后切换地图';
     $('nname').textContent = isLast ? '本赛段结束' : next.name;
-    $('ntime').textContent = '于 ' + fmtDateTime(st.blockEnd) + (isLast ? ' 结束' : ' 进入');
+    $('ntime').textContent = '于 ' + fmtDateTime(st.blockEnd) + (isLast ? ' 结束' : ' 开始');
   }
 
   // 渲染「当前这档 → 赛段结束」的全部排期（已过的不显示），按天分组
@@ -441,7 +459,7 @@
   var lastCardKey = null;
   var lastScheduleKey = null;
 
-  // ---- 主题：auto(跟随系统) / light / dark 三档循环 ----
+  // ---- 主题：直接选择，按钮和菜单同时标出当前模式 ----
   function storedMode(){
     try{
       var v = localStorage.getItem(THEME_KEY);
@@ -453,9 +471,6 @@
     try{ return !!window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return true; }
   }
   function resolveTheme(mode){ return mode === 'auto' ? (systemDark() ? 'dark' : 'light') : mode; }
-  function nextMode(mode){
-    return THEME_MODES[(THEME_MODES.indexOf(mode) + 1) % THEME_MODES.length];
-  }
   function applyTheme(mode, save){
     var t = resolveTheme(mode);
     var r = document.documentElement;
@@ -465,14 +480,44 @@
     if(meta) meta.setAttribute('content', META_BG[t]);
     var btn = $('themebtn');
     if(btn){
-      var label = '主题：' + THEME_LABEL[mode] + ' · 点击切换（下一档：' + THEME_LABEL[nextMode(mode)] + '）';
+      var label = '主题：' + THEME_LABEL[mode] + ' · 打开选择';
       btn.setAttribute('aria-label', label);
       btn.setAttribute('title', label);
     }
+    $('theme-label').textContent = mode === 'auto' ? '自动' : THEME_LABEL[mode];
+    THEME_MODES.forEach(function(option){
+      $('theme-'+option).setAttribute('aria-pressed', String(option === mode));
+    });
     if(save){ try{ localStorage.setItem(THEME_KEY, mode); }catch(e){} }
   }
+  function closeThemeMenu(restoreFocus){
+    $('theme-menu').hidden = true;
+    $('themebtn').setAttribute('aria-expanded', 'false');
+    if(restoreFocus) $('themebtn').focus();
+  }
   $('themebtn').addEventListener('click', function(){
-    applyTheme(nextMode(storedMode()), true);
+    var open = $('theme-menu').hidden;
+    $('theme-menu').hidden = !open;
+    $('themebtn').setAttribute('aria-expanded', String(open));
+    if(open) $('theme-'+document.documentElement.getAttribute('data-theme-mode')).focus();
+  });
+  THEME_MODES.forEach(function(mode){
+    $('theme-'+mode).addEventListener('click', function(){
+      applyTheme(mode, true);
+      closeThemeMenu(true);
+    });
+  });
+  document.addEventListener('click', function(event){
+    if(!$('theme-control').contains(event.target)) closeThemeMenu(false);
+  });
+  $('theme-control').addEventListener('keydown', function(event){
+    if(event.key === 'Escape' && !$('theme-menu').hidden){
+      event.preventDefault();
+      closeThemeMenu(true);
+    }
+  });
+  $('theme-control').addEventListener('focusout', function(event){
+    if(!$('theme-control').contains(event.relatedTarget)) closeThemeMenu(false);
   });
   // 停在「自动」时才跟着系统走
   try{
