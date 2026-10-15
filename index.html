@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>APEX 排位地图轮换 · 赛季 30</title>
+<title>APEX 排位地图轮换</title>
 <meta name="theme-color" id="meta-theme" content="#0a0d16" />
 <script>
 /* 主题引导：在首帧之前定好主题，避免先闪一下再跳变。
@@ -32,12 +32,9 @@
     --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
     --fs-cap:12px; --fs-sm:12.5px; --fs-md:15px; --fs-lg:20px; --fs-xl:34px; --fs-2xl:46px;
 
-    /* 地图主题色：-l 浅色主题用，-d 深色主题用（JS 按当前地图写入 --accent/--alt，
-       并按 POOL 写入 --map0..2，供排期行的小圆点用同样的地图色） */
+    /* 地图主题色：-l 浅色主题用，-d 深色主题用，JS 按当前地图写入。 */
     --accent-l:#b23a06; --alt-l:#9a6a08;
     --accent-d:#ff8a4d; --alt-d:#ffd479;
-    --map0-l:#3a4ccf; --map1-l:#0a6f92; --map2-l:#b23a06;
-    --map0-d:#8b9dff; --map1-d:#5fd4ff; --map2-d:#ff8a4d;
 
     /* 中性色（浅色主题） */
     --bg:#eef0f7; --card:#ffffff;
@@ -54,7 +51,6 @@
 
     /* 当前生效的强调色 */
     --accent:var(--accent-l); --alt:var(--alt-l);
-    --map0:var(--map0-l); --map1:var(--map1-l); --map2:var(--map2-l);
   }
   :root[data-theme="dark"]{
     color-scheme:dark;
@@ -72,10 +68,10 @@
     --accent-ink:var(--accent);
 
     --accent:var(--accent-d); --alt:var(--alt-d);
-    --map0:var(--map0-d); --map1:var(--map1-d); --map2:var(--map2-d);
   }
 
   *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none !important}
   /* 底色改成纯色（原先那两层光晕渐变去掉，地图身份色只出现在卡片/标记上）；
      不给 body 定高：让它的盒子跟着内容长高，背景才铺满整篇。 */
   html{background:var(--bg)}
@@ -107,7 +103,7 @@
   :root[data-theme-mode="dark"] .ic-moon{display:block}
   .badge{background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--accent-line);
     padding:6px 12px;border-radius:var(--r-pill);font-size:var(--fs-sm);font-weight:700;letter-spacing:.4px;
-    white-space:nowrap}
+    max-width:100%;line-height:1.5;white-space:normal}
 
   /* ── 主卡：当前地图 ─────────────────────────────────────────────── */
   .hero{position:relative;overflow:hidden;border-radius:var(--r-card);
@@ -120,6 +116,7 @@
     text-transform:uppercase;margin-bottom:var(--sp-2)}
   .hero .mname{font-size:var(--fs-2xl);font-weight:900;line-height:1.05;letter-spacing:-.5px;color:var(--heading)}
   .hero .meng{color:var(--muted);font-size:16px;margin-top:6px;font-weight:600;letter-spacing:.8px}
+  .hero[data-status="inactive"] .mname{font-size:clamp(22px,5vw,34px);line-height:1.3}
 
   .count{display:flex;align-items:baseline;gap:var(--sp-3);margin-top:var(--sp-5);flex-wrap:wrap}
   .count .big{font-size:var(--fs-xl);font-weight:900;color:var(--heading);font-variant-numeric:tabular-nums}
@@ -166,7 +163,9 @@
   .list li.row{display:flex;align-items:center;gap:10px;padding:0 18px;min-height:46px;
     border-top:1px solid var(--border)}
   .dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--mc,var(--muted))}
-  .m0{--mc:var(--map0)} .m1{--mc:var(--map1)} .m2{--mc:var(--map2)}
+  .dot{--mc:var(--dot-l)}
+  :root[data-theme="dark"] .dot{--mc:var(--dot-d)}
+  .list li.empty{padding:var(--sp-5) 18px;color:var(--muted);font-size:var(--fs-md);line-height:1.6}
   .smap{flex:1 1 auto;min-width:0;font-weight:700;font-size:var(--fs-md);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .stime{flex:none;color:var(--muted);font-size:var(--fs-sm);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -244,30 +243,32 @@
         <svg class="ic ic-auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4a8.6 8.6 0 0 1 0 17.2z" fill="currentColor" stroke="none"/></svg>
       </button>
     </div>
-    <div class="badge">赛季 30 · 每张 4 小时 30 分 · 三图循环</div>
+    <div class="badge" id="season-badge">正在读取赛段信息…</div>
   </div>
 
-  <section class="hero">
-    <h2 class="tag">当前排位地图</h2>
+  <section class="hero" id="hero">
+    <h2 class="tag" id="hero-tag">当前排位地图</h2>
     <div class="mname" id="mname">—</div>
     <div class="meng" id="meng">—</div>
-    <div class="count">
-      <span class="big" id="countdown">—</span>
-      <span class="lbl">后切换下一张</span>
-    </div>
-    <div class="bar" id="bar" role="progressbar" aria-label="当前时段进度"
-         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="—">
-      <div class="fill" id="fill"></div>
-    </div>
-    <div class="barrow">
-      <span id="stime">—</span>
-      <span id="etime">—</span>
-    </div>
-    <div class="next">
-      <div class="nlbl">下一张</div>
-      <div class="nrow">
-        <span class="nname" id="nname">—</span>
-        <span class="ntime" id="ntime">—</span>
+    <div id="rotation-details">
+      <div class="count">
+        <span class="big" id="countdown">—</span>
+        <span class="lbl" id="countdown-label">后切换下一张</span>
+      </div>
+      <div class="bar" id="bar" role="progressbar" aria-label="当前时段进度"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="—">
+        <div class="fill" id="fill"></div>
+      </div>
+      <div class="barrow">
+        <span id="stime">—</span>
+        <span id="etime">—</span>
+      </div>
+      <div class="next">
+        <div class="nlbl">下一张</div>
+        <div class="nrow">
+          <span class="nname" id="nname">—</span>
+          <span class="ntime" id="ntime">—</span>
+        </div>
       </div>
     </div>
   </section>
@@ -283,19 +284,31 @@
 
 <script>
 (function(){
-  var POOL = [
-    { i:0, name:'奥林匹斯', en:'Olympus',      al:'#3a4ccf', bl:'#7038c4', ad:'#8b9dff', bd:'#c2a3ff' },
-    { i:1, name:'残月',     en:'Broken Moon',  al:'#0a6f92', bl:'#0a5f7d', ad:'#5fd4ff', bd:'#7ee0ff' },
-    { i:2, name:'世界尽头', en:"World's Edge", al:'#b23a06', bl:'#9a6a08', ad:'#ff8a4d', bd:'#ffd479' }
-  ];
-  var DUR_MIN   = 270;
-  var ANCHOR_MS = Date.parse('2026-09-16T11:00:00+00:00'); // 奥林匹斯起点(北京 9/16 19:00 · Split 2 实测校准)
-  var BLOCK_MS  = DUR_MIN*60*1000;
-  var CYCLE_MS  = BLOCK_MS*3;
+  // ── 赛季配置：新赛季更新时集中修改这里 ──────────────────────────
+  // maps 按轮换顺序排列；anchorAt 是 maps[0] 某一次实际开始的时间，
+  // 不必等于赛段开始时间。所有时间必须带时区，+08:00 表示北京时间。
+  // al/bl 是浅色主题的主色/辅色，ad/bd 是深色主题的主色/辅色。
+  var SEASON = {
+    number: 30,
+    split: 2,
+    startsAt: '2026-09-16T01:00:00+08:00',
+    endsAt: '2026-11-11T01:00:00+08:00',
+    anchorAt: '2026-09-16T19:00:00+08:00', // 奥林匹斯，实测校准
+    durationMinutes: 270,
+    maps: [
+      { name:'奥林匹斯', en:'Olympus',      al:'#3a4ccf', bl:'#7038c4', ad:'#8b9dff', bd:'#c2a3ff' },
+      { name:'残月',     en:'Broken Moon',  al:'#0a6f92', bl:'#0a5f7d', ad:'#5fd4ff', bd:'#7ee0ff' },
+      { name:'世界尽头', en:"World's Edge", al:'#b23a06', bl:'#9a6a08', ad:'#ff8a4d', bd:'#ffd479' }
+    ]
+  };
 
-  // 赛段：9/16 01:00 起，8 周（在 6 周基础上再排 14 天，到 11/11 01:00 截止）
-  var SPLIT_START_MS = Date.parse('2026-09-16T01:00:00+08:00');
-  var SPLIT_END_MS   = SPLIT_START_MS + 8*7*24*60*60*1000;
+  var POOL = SEASON.maps;
+  var DUR_MIN   = SEASON.durationMinutes;
+  var ANCHOR_MS = Date.parse(SEASON.anchorAt);
+  var BLOCK_MS  = DUR_MIN*60*1000;
+  var CYCLE_MS  = BLOCK_MS*POOL.length;
+  var SPLIT_START_MS = Date.parse(SEASON.startsAt);
+  var SPLIT_END_MS   = Date.parse(SEASON.endsAt);
 
   var THEME_KEY    = 'apex-theme';                     // 键名别改，改了所有人的主题记忆就重置
   var THEME_MODES  = ['auto','light','dark'];          // 点一下换下一档：自动 → 浅色 → 深色 → 自动
@@ -304,23 +317,22 @@
   var WEEK         = ['周日','周一','周二','周三','周四','周五','周六'];
 
   function state(nowMs){
+    if(nowMs < SPLIT_START_MS) return { phase:'upcoming' };
+    if(nowMs >= SPLIT_END_MS) return { phase:'ended' };
     var elapsed = nowMs - ANCHOR_MS;
     var cyclePos = ((elapsed % CYCLE_MS) + CYCLE_MS) % CYCLE_MS;
     var idx = Math.floor(cyclePos / BLOCK_MS);
-    var within = cyclePos % BLOCK_MS;
     var cycleBase = nowMs - cyclePos;
-    var blockStart = cycleBase + idx*BLOCK_MS;
-    var blockEnd = blockStart + BLOCK_MS;
+    var rotationStart = cycleBase + idx*BLOCK_MS;
+    var blockStart = Math.max(rotationStart, SPLIT_START_MS);
+    var blockEnd = Math.min(rotationStart + BLOCK_MS, SPLIT_END_MS);
     return {
+      phase: 'active',
       map: POOL[idx], idx: idx,
       blockStart: blockStart, blockEnd: blockEnd,
-      progress: within / BLOCK_MS,
-      remainingSec: (BLOCK_MS - within)/1000
+      progress: (nowMs - blockStart) / (blockEnd - blockStart),
+      remainingSec: (blockEnd - nowMs)/1000
     };
-  }
-
-  function mapIdxAt(t){
-    return (((Math.round((t - ANCHOR_MS)/BLOCK_MS)) % 3) + 3) % 3;
   }
 
   var $ = function(id){ return document.getElementById(id); };
@@ -346,7 +358,7 @@
     return dayKey(startMs) === dayKey(endMs) ? fmtTime(endMs) : fmtDateTime(endMs);
   }
   function mmss(sec){
-    sec=Math.max(0,sec|0);
+    sec=Math.max(0,Math.ceil(sec));
     var h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
     if(h>0) return h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
     return m+':'+(s<10?'0':'')+s;
@@ -365,38 +377,49 @@
       + ' ' + pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()) + ' ' + tz;
   }
 
-  function renderCards(){
-    var st = state(Date.now());
+  function renderCards(st){
+    var active = st.phase === 'active';
+    $('hero').setAttribute('data-status', active ? 'active' : 'inactive');
+    $('rotation-details').hidden = !active;
+    $('hero-tag').textContent = active ? '当前排位地图' : '赛段状态';
+    if(!active){
+      $('mname').textContent = st.phase === 'upcoming' ? '赛段尚未开始' : '本赛段已结束';
+      $('meng').textContent = st.phase === 'upcoming'
+        ? '开始时间：' + fmtDateTime(SPLIT_START_MS)
+        : '等待新赛季数据更新';
+      return;
+    }
     var m = st.map;
     $('mname').textContent = m.name;
     $('meng').textContent = m.en;
     var rs = document.documentElement.style;
     rs.setProperty('--accent-l', m.al); rs.setProperty('--alt-l', m.bl);
     rs.setProperty('--accent-d', m.ad); rs.setProperty('--alt-d', m.bd);
-    // 排期行的小圆点：每张地图自己的颜色
-    for(var i=0;i<POOL.length;i++){
-      rs.setProperty('--map'+i+'-l', POOL[i].al);
-      rs.setProperty('--map'+i+'-d', POOL[i].ad);
-    }
     $('stime').textContent = '开始 ' + fmtDateTime(st.blockStart);
     $('etime').textContent = '结束 ' + fmtDateTime(st.blockEnd);
 
-    var next = POOL[(st.idx+1)%3];
-    $('nname').textContent = next.name;
-    $('ntime').innerHTML = '于 <b>' + fmtDateTime(st.blockEnd) + '</b> 进入';
+    var isLast = st.blockEnd === SPLIT_END_MS;
+    var next = POOL[(st.idx+1)%POOL.length];
+    $('countdown-label').textContent = isLast ? '后本赛段结束' : '后切换下一张';
+    $('nname').textContent = isLast ? '本赛段结束' : next.name;
+    $('ntime').textContent = '于 ' + fmtDateTime(st.blockEnd) + (isLast ? ' 结束' : ' 进入');
   }
 
   // 渲染「当前这档 → 赛段结束」的全部排期（已过的不显示），按天分组
-  function renderSchedule(){
+  function renderSchedule(now, st){
     var list = $('sched');
     var prevTop = list.scrollTop;
-    var now = Date.now();
-    var start = Math.max(SPLIT_START_MS, state(now).blockStart);
+    if(st.phase === 'ended'){
+      list.innerHTML = '<li class="empty">本赛段排期已结束，等待新赛季数据更新。</li>';
+      return;
+    }
+    var start = st.phase === 'upcoming' ? SPLIT_START_MS : st.blockStart;
     var todayKey = dayKey(now);
     var html = '', lastDay = null;
-    for(var t = start; t < SPLIT_END_MS; t += BLOCK_MS){
-      var m = POOL[mapIdxAt(t)];
-      var be = t + BLOCK_MS;
+    for(var t = start; t < SPLIT_END_MS; t = be){
+      var slot = state(t);
+      var m = slot.map;
+      var be = slot.blockEnd;
       var isCur = (t <= now && now < be);
       var dk = dayKey(t);
       if(dk !== lastDay){
@@ -404,8 +427,8 @@
         html += '<li class="day">' + (dk === todayKey ? '<span class="today">今天</span> · ' : '')
           + fmtDayLabel(t) + '</li>';
       }
-      html += '<li class="row'+(isCur?' cur':'')+'">'+
-        '<span class="dot m'+m.i+'"></span>'+
+      html += '<li class="row'+(isCur?' cur':'')+'"'+(isCur?' aria-current="time"':'')+'>'+
+        '<span class="dot" aria-hidden="true" style="--dot-l:'+m.al+';--dot-d:'+m.ad+'"></span>'+
         '<span class="smap">'+m.name+'</span>'+
         (isCur?'<span class="pnow">现在</span>':'')+
         '<span class="stime">'+fmtDateTime(t)+' — '+fmtEndText(t, be)+'</span>'+
@@ -415,11 +438,8 @@
     list.scrollTop = prevTop;
   }
 
-  var lastBlock = null;
-  function refreshSchedule(){
-    var st = state(Date.now());
-    if(st.blockStart !== lastBlock){ lastBlock = st.blockStart; renderSchedule(); }
-  }
+  var lastCardKey = null;
+  var lastScheduleKey = null;
 
   // ---- 主题：auto(跟随系统) / light / dark 三档循环 ----
   function storedMode(){
@@ -463,22 +483,39 @@
   }catch(e){}
 
   function tick(){
-    renderCards();
+    var now = Date.now();
+    var st = state(now);
+    var cardKey = st.phase + ':' + (st.blockStart || '');
+    var scheduleKey = cardKey + ':' + dayKey(now);
+    if(cardKey !== lastCardKey){
+      renderCards(st);
+      lastCardKey = cardKey;
+    }
+    if(scheduleKey !== lastScheduleKey){
+      renderSchedule(now, st);
+      lastScheduleKey = scheduleKey;
+    }
     updateTz();
-    var st = state(Date.now());
+    if(st.phase !== 'active') return;
     $('countdown').textContent = mmss(st.remainingSec);
     $('fill').style.width = (st.progress*100).toFixed(2)+'%';
     var bar = $('bar');
     bar.setAttribute('aria-valuenow', Math.round(st.progress*100));
     bar.setAttribute('aria-valuetext', '剩余 ' + mmss(st.remainingSec));
-    refreshSchedule();
   }
 
   // 初始化：先同步渲染一帧（含倒计时与进度条，首帧即出），再启动每秒刷新
+  var durationHours = Math.floor(DUR_MIN/60);
+  var durationMinutes = DUR_MIN%60;
+  var durationLabel = (durationHours ? durationHours + ' 小时' : '')
+    + (durationMinutes ? (durationHours ? ' ' : '') + durationMinutes + ' 分' : '');
+  document.title = 'APEX 排位地图轮换 · 赛季 ' + SEASON.number;
+  $('season-badge').textContent = '赛季 ' + SEASON.number + ' · 赛段 ' + SEASON.split
+    + ' · 每张 ' + durationLabel + ' · ' + POOL.length + ' 图循环';
   tick();
   applyTheme(storedMode(), false);
-  lastBlock = state(Date.now()).blockStart;
   setInterval(tick, 1000);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) tick(); });
 })();
 </script>
 </body>
