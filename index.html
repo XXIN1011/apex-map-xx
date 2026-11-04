@@ -307,16 +307,16 @@
   // 不必等于赛段开始时间。所有时间必须带时区，+08:00 表示北京时间。
   // al/bl 是浅色主题的主色/辅色，ad/bd 是深色主题的主色/辅色。
   var SEASON = {
-    number: 30,
-    split: 2,
-    startsAt: '2026-09-16T01:00:00+08:00',
-    endsAt: '2026-11-11T01:00:00+08:00',
-    anchorAt: '2026-09-16T19:00:00+08:00', // 奥林匹斯，实测校准
+    number: 31,
+    split: 1,
+    startsAt: '2026-11-04T02:00:00+08:00',
+    endsAt: '2026-12-30T02:00:00+08:00', // 暂按赛段 8 周设置，待准确结束时间确认后更新
+    anchorAt: '2026-11-04T11:00:00+08:00', // 残月，按当日 15:30 结束倒推 4.5 小时校准
     durationMinutes: 270,
     maps: [
-      { name:'奥林匹斯', en:'Olympus',      al:'#3a4ccf', bl:'#7038c4', ad:'#8b9dff', bd:'#c2a3ff' },
       { name:'残月',     en:'Broken Moon',  al:'#0a6f92', bl:'#0a5f7d', ad:'#5fd4ff', bd:'#7ee0ff' },
-      { name:'世界尽头', en:"World's Edge", al:'#b23a06', bl:'#9a6a08', ad:'#ff8a4d', bd:'#ffd479' }
+      { name:'风暴点',   en:'Storm Point',  al:'#b23a06', bl:'#9a6a08', ad:'#ff8a4d', bd:'#ffd479' },
+      { name:'电力区',   en:'E-District',   al:'#3a4ccf', bl:'#7038c4', ad:'#8b9dff', bd:'#c2a3ff' }
     ]
   };
 
